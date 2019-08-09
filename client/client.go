@@ -54,11 +54,11 @@ func (c *Client) dial() (*tls.Conn, error) {
 	return tls.Dial("tcp", c.Addr, conf)
 }
 
-// add protobuf
-// cd
-// exec
-// save logs to file
-// add daemon file
+// TODO: add protobuf
+// TODO: cd
+// TODO: exec
+// TODO: save logs to file
+// TODO: add daemon file
 
 func (c *Client) executeCommand() (error) {
 	reader := bufio.NewReader(c.Conn)
