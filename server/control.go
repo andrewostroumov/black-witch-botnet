@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"github.com/gookit/color"
 	"io"
 	"log"
 	"net"
@@ -22,37 +23,40 @@ func (c *ControlServer) Run(r *Runner) {
 	//defer os.Remove(c.Addr)
 }
 
-func (c *ControlServer) listen() (l net.Listener) {
+func (c *ControlServer) listen() (net.Listener) {
 	l, err := net.Listen("unix", c.Sock)
 
 	if err != nil {
-		log.Printf("[UNIX] Listen on %s: %v", c.Sock, err)
+		log.Printf("[UNIX] Listen on %s: %v\n", c.Sock, err)
 		os.Exit(1)
 	}
 
-	log.Printf("[UNIX] Listening on %s", c.Sock)
+	log.Printf("[UNIX] Listening on %s\n", c.Sock)
 
-	return
+	return l
 }
 
 func (c *ControlServer) accept(l net.Listener, r *Runner) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Println("[UNIX] Accept connection", err)
+			fmt.Printf("[UNIX] Accept control socket: %v\n", err)
 			continue
 		}
 
-		go c.handleConn(conn, r)
+		log.Println("Accepted control socket", c.Sock)
+
+		go c.handle(conn, r)
 	}
 }
 
-func (c *ControlServer) handleConn(conn net.Conn, r *Runner) {
+func (c *ControlServer) handle(conn net.Conn, r *Runner) {
 	reader := bufio.NewReader(conn)
 	defer conn.Close()
 
 	for {
-		conn.Write([]byte("<CC:#> "))
+		text := color.Green.Text("<CC:#> ")
+		conn.Write([]byte(text))
 
 		text, err := reader.ReadString('\n')
 
@@ -64,6 +68,7 @@ func (c *ControlServer) handleConn(conn net.Conn, r *Runner) {
 			log.Println("[UNIX] Reading unix input", err)
 			continue
 		}
+
 		text = strings.TrimSpace(text)
 		cont := strings.Split(text, " ")
 
