@@ -9,8 +9,8 @@ type Parser struct {
 	Text string
 }
 
-func (p *Parser) Parse() (*relations.Message) {
-	msg := &relations.Message{}
+func (p *Parser) Parse() *relations.Command {
+	msg := &relations.Command{}
 	seg := strings.Split(p.Text, " ")
 
 	i := 0
@@ -22,7 +22,7 @@ func (p *Parser) Parse() (*relations.Message) {
 	res, ok := p.Normalize(seg, relations.Types, &i, "shell")
 
 	if ok {
-		msg.Type = res
+		msg.Target = res
 	} else {
 		return msg
 	}
@@ -30,7 +30,7 @@ func (p *Parser) Parse() (*relations.Message) {
 	res, ok = p.Normalize(seg, relations.Domains, &i, "exec")
 
 	if ok {
-		msg.Domain = res
+		msg.Scope = res
 	} else {
 		return msg
 	}
@@ -43,7 +43,7 @@ func (p *Parser) Parse() (*relations.Message) {
 func (p *Parser) Normalize(seg []string, enum []string, i *int, def string) (string, bool) {
 	var res string
 
-	if len(seg) < *i + 1 {
+	if len(seg) < *i+1 {
 		return "", false
 	}
 

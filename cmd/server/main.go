@@ -9,7 +9,7 @@ func main() {
 	acceptAddr := flag.String("addr-accept", ":9999", "Server address")
 	controlSock := flag.String("sock-control", "../../tmp/unix.sock", "Control address")
 	cert := flag.String("cert", "../../crypt/server.crt", "Server tls cert")
-	key  := flag.String("key", "../../crypt/server.key", "Server tls key")
+	key := flag.String("key", "../../crypt/server.key", "Server tls key")
 	flag.Parse()
 
 	s := &server.AcceptServer{
@@ -23,7 +23,7 @@ func main() {
 	}
 
 	r := &server.Runner{
-		Accept: s,
+		Accept:  s,
 		Control: c,
 	}
 

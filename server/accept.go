@@ -6,17 +6,19 @@ import (
 	"log"
 	"net"
 	"os"
+	"sync"
 )
 
 type AcceptServer struct {
-	Addr     string
-	Cert     string
-	Key      string
+	Addr string
+	Cert string
+	Key  string
 }
 
-func (s *AcceptServer) Run(r *Runner) {
+func (s *AcceptServer) Run(r *Runner, wg sync.WaitGroup) {
 	l := s.listen()
 	s.accept(l, r)
+	wg.Done()
 	defer l.Close()
 }
 

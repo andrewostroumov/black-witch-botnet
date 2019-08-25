@@ -7,22 +7,31 @@ import (
 )
 
 type Handler struct {
-	Message *relations.Message
+	Command *relations.Command
 }
 
-func (h *Handler) handle() (*relations.Result) {
+func (h *Handler) handle() *relations.Response {
+	var resp *relations.Response
 	res, err := h.exec()
 
 	if err != nil {
-		res = &relations.Result{Error: err.Error()}
+		resp = &relations.Response{
+			Error: &relations.Error{
+				Code: 1,
+				Data: err.Error(),
+			},
+		}
+	} else {
+		resp = &relations.Response{
+			Result: res,
+		}
 	}
 
-	return res
+	return resp
 }
 
-// TODO: handle ping 8.8.8.8 - long running command
 func (h *Handler) exec() (*relations.Result, error) {
-	data := strings.Split(h.Message.Data, " ")
+	data := strings.Split(h.Command.Data, " ")
 	cmd := data[0]
 	args := append(data[:0], data[0+1:]...)
 
@@ -30,10 +39,22 @@ func (h *Handler) exec() (*relations.Result, error) {
 	o, err := e.Output()
 
 	if err != nil {
+		if ee, ok := err.(*exec.ExitError); ok {
+			res := &relations.Result{
+				Exit:   ee.ExitCode(),
+				Stderr: ee.Stderr,
+			}
+
+			return res, nil
+		}
+
 		return nil, err
 	}
 
-	res := &relations.Result{Data: strings.TrimSpace(string(o))}
+	res := &relations.Result{
+		Exit:   0,
+		Stdout: o,
+	}
+
 	return res, nil
 }
-

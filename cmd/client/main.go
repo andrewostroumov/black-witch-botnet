@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"time"
 	"soulless_network/client"
+	"time"
 )
 
 func main() {

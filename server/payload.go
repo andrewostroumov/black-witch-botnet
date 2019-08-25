@@ -49,8 +49,8 @@ func (p *Payload) Activate(conn net.Conn) {
 	}
 }
 
-func (p *Payload) Write(msg *relations.Message) (error) {
-	b, err := bson.Marshal(msg)
+func (p *Payload) Write(cmd *relations.Command) error {
+	b, err := bson.Marshal(cmd)
 
 	if err != nil {
 		return err
@@ -83,8 +83,8 @@ func (p *Payload) Read() (*relations.Result, error) {
 	return res, nil
 }
 
-func (p *Payload) handle(msg *relations.Message, conn net.Conn) (error) {
-	err := p.Write(msg)
+func (p *Payload) handle(cmd *relations.Command, conn net.Conn) error {
+	err := p.Write(cmd)
 
 	if err != nil {
 		return err
@@ -96,9 +96,8 @@ func (p *Payload) handle(msg *relations.Message, conn net.Conn) (error) {
 		return err
 	}
 
-
 	// TODO: stringify struct
-	_, err = conn.Write(append([]byte(res.Data), '\n'))
+	_, err = conn.Write(append(res.Stdout, '\n'))
 
 	if err != nil {
 		return err
@@ -123,7 +122,7 @@ func receive(conn net.Conn) (string, error) {
 	return text, nil
 }
 
-func parse(text string) (*relations.Message) {
+func parse(text string) *relations.Command {
 	p := &Parser{text}
 	return p.Parse()
 }

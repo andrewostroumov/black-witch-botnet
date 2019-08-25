@@ -16,7 +16,21 @@ type Client struct {
 	ReconnTime time.Duration
 }
 
+// TODO: v1.0.0
+// add wait group
+// update command type
+// implement cd
+// add messages is bson
+// hello message from server
+// when error on client side client must try to send error
+// add timeout to server side write
+// handle ping 8.8.8.8 - long running command (timeout)
+
+// TODO: next
+// save logs to file
+// add daemon file
 // Что будет если коннекшин разорветься здесь когда мы в консоли (разрыв на получении данных)
+
 func (c *Client) Run() {
 	c.connect()
 
@@ -25,13 +39,17 @@ func (c *Client) Run() {
 		msg, err := c.read()
 
 		if err != nil {
-			log.Println(err)
+			log.Printf("Error read response %s\n", err)
 			c.reconnect()
 			continue
 		}
 
 		res := c.handle(msg)
-		c.write(res)
+		err = c.write(res)
+
+		if err != nil {
+			log.Printf("Error write response %s\n", err)
+		}
 	}
 }
 
@@ -63,11 +81,7 @@ func (c *Client) dial() (*tls.Conn, error) {
 	return tls.DialWithDialer(dialer, "tcp", c.Addr, conf)
 }
 
-// TODO: hello msg to leave dial
-// TODO: save logs to file
-// TODO: add daemon file
-
-func (c *Client) write(res *relations.Result) (error) {
+func (c *Client) write(res *relations.Response) error {
 	b, err := bson.Marshal(res)
 
 	if err != nil {
@@ -85,7 +99,7 @@ func (c *Client) write(res *relations.Result) (error) {
 	return nil
 }
 
-func (c *Client) read() (*relations.Message, error) {
+func (c *Client) read() (*relations.Command, error) {
 	reader := bufio.NewReader(c.Conn)
 	b, err := reader.ReadBytes('\r')
 
@@ -94,18 +108,18 @@ func (c *Client) read() (*relations.Message, error) {
 		return nil, err
 	}
 
-	msg := &relations.Message{}
-	err = bson.Unmarshal(b, msg)
+	cmd := &relations.Command{}
+	err = bson.Unmarshal(b, cmd)
 
 	if err != nil {
 		log.Printf("[BSON] Unmarshaling message %s\n", err)
-		return msg, nil
+		return nil, err
 	}
 
-	return msg, nil
+	return cmd, nil
 }
 
-func (c *Client) handle(msg *relations.Message) (*relations.Result) {
-	h := Handler{msg}
+func (c *Client) handle(cmd *relations.Command) *relations.Response {
+	h := Handler{cmd}
 	return h.handle()
 }

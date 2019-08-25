@@ -3,14 +3,24 @@ package relations
 var Types = []string{"client", "shell"}
 var Domains = []string{"exec", "cd"}
 
-type Message struct {
-	Type string
-	Domain string
+type Command struct {
+	Target string
+	Scope  string
+	Data   string
+}
+
+type Response struct {
+	Error  *Error
+	Result *Result
+}
+
+type Error struct {
+	Code uint
 	Data string
 }
 
 type Result struct {
-	Error string
-	Exit uint8
-	Data string
+	Exit   int
+	Stderr []byte
+	Stdout []byte
 }

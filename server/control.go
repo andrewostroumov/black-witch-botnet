@@ -10,20 +10,22 @@ import (
 	"net"
 	"os"
 	"strings"
+	"sync"
 )
 
 type ControlServer struct {
 	Sock string
 }
 
-func (c *ControlServer) Run(r *Runner) {
+func (c *ControlServer) Run(r *Runner, wg sync.WaitGroup) {
 	l := c.listen()
 	c.accept(l, r)
-	//defer l.Close()
+	wg.Done()
+	defer l.Close()
 	//defer os.Remove(c.Addr)
 }
 
-func (c *ControlServer) listen() (net.Listener) {
+func (c *ControlServer) listen() net.Listener {
 	l, err := net.Listen("unix", c.Sock)
 
 	if err != nil {
