@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gookit/color"
 	"gopkg.in/mgo.v2/bson"
-	"io"
 	"log"
 	"net"
 	"soulless_network/relations"
@@ -37,7 +36,6 @@ func (p *Payload) Activate(conn net.Conn) {
 		o, err := p.handle(text, conn)
 
 		if err != nil {
-			log.Println("[TCP] Handling", err)
 			conn.Write([]byte(err.Error()))
 			break
 		}
@@ -128,9 +126,9 @@ func receive(conn net.Conn) (string, error) {
 	reader := bufio.NewReader(conn)
 	text, err := reader.ReadString('\n')
 
-	if err == io.EOF {
-		return "", err
-	}
+	//if err == io.EOF {
+	//	return "", err
+	//}
 
 	if err != nil {
 		return "", err
