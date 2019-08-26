@@ -17,11 +17,9 @@ type Client struct {
 }
 
 // TODO: v1.0.0
-// add wait group
-// update command type
+// hello message from server
 // implement cd
 // add messages is bson
-// hello message from server
 // when error on client side client must try to send error
 // add timeout to server side write
 // handle ping 8.8.8.8 - long running command (timeout)

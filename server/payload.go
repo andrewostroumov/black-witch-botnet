@@ -25,31 +25,33 @@ func (p *Payload) Activate(conn net.Conn) {
 
 		text, err := receive(conn)
 
+		if err != nil {
+			log.Println("[UNIX] Receive unix input", err)
+			break
+		}
+
 		if text == "exit" {
 			break
 		}
 
-		msg := parse(text)
-
-		// TODO: check if message is full
-		log.Println(msg)
-
-		if err != nil {
-			log.Println("[PL] Reading unix input", err)
-			break
-		}
-
-		err = p.handle(msg, conn)
+		o, err := p.handle(text, conn)
 
 		if err != nil {
 			log.Println("[TCP] Handling", err)
 			conn.Write([]byte(err.Error()))
 			break
 		}
+
+		err = send(o, conn)
+
+		if err != nil {
+			log.Println("[UNIX] Send unix output", err)
+			break
+		}
 	}
 }
 
-func (p *Payload) Write(cmd *relations.Command) error {
+func (p *Payload) write(cmd *relations.Command) error {
 	b, err := bson.Marshal(cmd)
 
 	if err != nil {
@@ -65,7 +67,7 @@ func (p *Payload) Write(cmd *relations.Command) error {
 	return nil
 }
 
-func (p *Payload) Read() (*relations.Result, error) {
+func (p *Payload) read() (*relations.Response, error) {
 	reader := bufio.NewReader(p.Conn)
 	b, err := reader.ReadBytes('\r')
 
@@ -73,7 +75,7 @@ func (p *Payload) Read() (*relations.Result, error) {
 		return nil, err
 	}
 
-	res := &relations.Result{}
+	res := &relations.Response{}
 	err = bson.Unmarshal(b, res)
 
 	if err != nil {
@@ -83,27 +85,43 @@ func (p *Payload) Read() (*relations.Result, error) {
 	return res, nil
 }
 
-func (p *Payload) handle(cmd *relations.Command, conn net.Conn) error {
-	err := p.Write(cmd)
+func (p *Payload) handle(text string, conn net.Conn) (string, error) {
+	cmd := parse(text)
+
+	err := p.write(cmd)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	res, err := p.Read()
+	res, err := p.read()
 
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	// TODO: stringify struct
-	_, err = conn.Write(append(res.Stdout, '\n'))
+	o := dump(res)
 
-	if err != nil {
-		return err
+	return o, nil
+}
+
+func dump(res *relations.Response) string {
+	if res.Error != nil {
+		return fmt.Sprintf("Error code %d\nData %s", res.Error.Code, res.Error.Data)
+	} else {
+		if res.Result.Exit != 0 {
+			return fmt.Sprintf("%sExit %d", res.Result.Stderr, res.Result.Exit)
+		} else {
+			return fmt.Sprintf("%s", res.Result.Stdout)
+		}
 	}
 
-	return nil
+}
+
+func send(o string, conn net.Conn) error {
+	o = strings.TrimSpace(o)
+	_, err := conn.Write(append([]byte(o), '\n'))
+	return err
 }
 
 func receive(conn net.Conn) (string, error) {
