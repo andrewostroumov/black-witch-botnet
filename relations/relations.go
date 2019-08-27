@@ -1,7 +1,13 @@
 package relations
 
-var Types = []string{"client", "shell"}
-var Domains = []string{"exec", "cd"}
+var Types = []string{"payload", "shell"}
+var Scopes = []string{"exec", "cd"}
+
+const (
+	TypeErrorResult = iota
+	TypeSystemResult
+	TypeShellResult
+)
 
 type Command struct {
 	Target string
@@ -10,16 +16,20 @@ type Command struct {
 }
 
 type Response struct {
-	Error  *Error
-	Result *Result
+	Type uint8
+	Data interface{}
 }
 
-type Error struct {
+type ErrorResult struct {
 	Code uint
 	Data string
 }
 
-type Result struct {
+type SystemResult struct {
+	Status bool
+}
+
+type ShellResult struct {
 	Exit   int
 	Stderr []byte
 	Stdout []byte

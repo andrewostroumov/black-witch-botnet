@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/gookit/color"
+	"github.com/mitchellh/mapstructure"
 	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net"
@@ -36,7 +37,7 @@ func (p *Payload) Activate(conn net.Conn) {
 		o, err := p.handle(text, conn)
 
 		if err != nil {
-			conn.Write([]byte(err.Error()))
+			conn.Write(append([]byte(err.Error()), '\n'))
 			break
 		}
 
@@ -104,16 +105,29 @@ func (p *Payload) handle(text string, conn net.Conn) (string, error) {
 }
 
 func dump(res *relations.Response) string {
-	if res.Error != nil {
-		return fmt.Sprintf("Error code %d\nData %s", res.Error.Code, res.Error.Data)
-	} else {
-		if res.Result.Exit != 0 {
-			return fmt.Sprintf("%sExit %d", res.Result.Stderr, res.Result.Exit)
+	switch res.Type {
+	case relations.TypeErrorResult:
+		r := &relations.ErrorResult{}
+		mapstructure.Decode(res.Data, r)
+
+		return fmt.Sprintf("Error code %d\nData %s", r.Code, r.Data)
+	case relations.TypeSystemResult:
+		r := &relations.SystemResult{}
+		mapstructure.Decode(res.Data, r)
+
+		return fmt.Sprintf("Status %t", r.Status)
+	case relations.TypeShellResult:
+		r := &relations.ShellResult{}
+		mapstructure.Decode(res.Data, r)
+
+		if r.Exit != 0 {
+			return fmt.Sprintf("%sExit %d", r.Stderr, r.Exit)
 		} else {
-			return fmt.Sprintf("%s", res.Result.Stdout)
+			return fmt.Sprintf("%s", r.Stdout)
 		}
 	}
 
+	return fmt.Sprintf("Unknown response\n%+v", res)
 }
 
 func send(o string, conn net.Conn) error {

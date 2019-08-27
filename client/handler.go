@@ -16,21 +16,23 @@ func (h *Handler) handle() *relations.Response {
 
 	if err != nil {
 		resp = &relations.Response{
-			Error: &relations.Error{
+			Type: relations.TypeErrorResult,
+			Data: &relations.ErrorResult{
 				Code: 1,
 				Data: err.Error(),
 			},
 		}
 	} else {
 		resp = &relations.Response{
-			Result: res,
+			Type: relations.TypeShellResult,
+			Data: res,
 		}
 	}
 
 	return resp
 }
 
-func (h *Handler) exec() (*relations.Result, error) {
+func (h *Handler) exec() (*relations.ShellResult, error) {
 	data := strings.Split(h.Command.Data, " ")
 	cmd := data[0]
 	args := append(data[:0], data[0+1:]...)
@@ -40,7 +42,7 @@ func (h *Handler) exec() (*relations.Result, error) {
 
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
-			res := &relations.Result{
+			res := &relations.ShellResult{
 				Exit:   ee.ExitCode(),
 				Stderr: ee.Stderr,
 			}
@@ -51,7 +53,7 @@ func (h *Handler) exec() (*relations.Result, error) {
 		return nil, err
 	}
 
-	res := &relations.Result{
+	res := &relations.ShellResult{
 		Exit:   0,
 		Stdout: o,
 	}

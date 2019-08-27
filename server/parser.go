@@ -27,7 +27,7 @@ func (p *Parser) Parse() *relations.Command {
 		return msg
 	}
 
-	res, ok = p.Normalize(seg, relations.Domains, &i, "exec")
+	res, ok = p.Normalize(seg, relations.Scopes, &i, "exec")
 
 	if ok {
 		msg.Scope = res
