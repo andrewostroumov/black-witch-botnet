@@ -110,7 +110,7 @@ func dump(res *relations.Response) string {
 		r := &relations.ErrorResult{}
 		mapstructure.Decode(res.Data, r)
 
-		return fmt.Sprintf("Error code %d\nData %s", r.Code, r.Data)
+		return fmt.Sprintf("%s\nError code %d", r.Data, r.Code)
 	case relations.TypeSystemResult:
 		r := &relations.SystemResult{}
 		mapstructure.Decode(res.Data, r)
