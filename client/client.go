@@ -1,7 +1,6 @@
 package client
 
 import (
-	"bufio"
 	"crypto/tls"
 	"gopkg.in/mgo.v2/bson"
 	"log"
@@ -17,15 +16,15 @@ type Client struct {
 }
 
 // TODO: v1.0.0
+// realize own proto
 // implement cd
-// when error on client side client must try to send error
-// handle ping 8.8.8.8 - long running command (timeout)
 
 // TODO: next
 // hello message from server (as part as internal monitor maybe?)
 // save logs to file
 // add daemon file
 // Что будет если коннекшин разорветься здесь когда мы в консоли (разрыв на получении данных)
+// Command.Data split to command and args
 
 func (c *Client) Run() {
 	c.connect()
@@ -40,11 +39,35 @@ func (c *Client) Run() {
 			continue
 		}
 
-		res := c.handle(msg)
-		err = c.write(res)
+		var res *relations.Response
+		ch := make(chan struct{}, 1)
 
-		if err != nil {
-			log.Printf("Error write response %s\n", err)
+		go func() {
+			res = c.handle(msg)
+			ch <- struct{}{}
+		}()
+
+		select {
+		case <-ch:
+			err = c.write(res)
+
+			if err != nil {
+				log.Printf("Error write response %s\n", err)
+			}
+		case <-time.After(10 * time.Second):
+			res = &relations.Response{
+				Type: relations.TypeErrorResult,
+				Data: &relations.ErrorResult{
+					Code: 2,
+					Data: "run command timeout",
+				},
+			}
+
+			err = c.write(res)
+
+			if err != nil {
+				log.Printf("Error write response %s\n", err)
+			}
 		}
 	}
 }

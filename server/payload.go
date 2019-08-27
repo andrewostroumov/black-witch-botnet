@@ -67,6 +67,8 @@ func (p *Payload) write(cmd *relations.Command) error {
 }
 
 func (p *Payload) read() (*relations.Response, error) {
+	p.Conn.SetReadDeadline(time.Now().Add(1 * time.Minute))
+
 	reader := bufio.NewReader(p.Conn)
 	b, err := reader.ReadBytes('\r')
 
