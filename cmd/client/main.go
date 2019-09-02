@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"soulless_network/client"
+	"black_witch_botnet/client"
 	"time"
 )
 

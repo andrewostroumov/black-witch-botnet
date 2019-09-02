@@ -1,4 +1,4 @@
-module soulless_network
+module black_witch_botnet
 
 go 1.12
 

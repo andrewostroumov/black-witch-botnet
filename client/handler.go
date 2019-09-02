@@ -2,7 +2,7 @@ package client
 
 import (
 	"os/exec"
-	"soulless_network/relations"
+	"black_witch_botnet/relations"
 	"strings"
 )
 

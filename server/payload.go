@@ -6,8 +6,8 @@ import  (
 	"github.com/gookit/color"
 	"log"
 	"net"
-	"soulless_network/proto"
-	"soulless_network/relations"
+	"black_witch_botnet/proto"
+	"black_witch_botnet/relations"
 	"strings"
 	"time"
 )

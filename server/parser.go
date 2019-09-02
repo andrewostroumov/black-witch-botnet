@@ -2,7 +2,7 @@ package server
 
 import (
 	"errors"
-	"soulless_network/relations"
+	"black_witch_botnet/relations"
 	"strings"
 )
 

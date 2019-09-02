@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"soulless_network/server"
+	"black_witch_botnet/server"
 )
 
 func main() {

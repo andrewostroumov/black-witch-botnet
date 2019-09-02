@@ -6,7 +6,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"io"
 	"log"
-	"soulless_network/relations"
+	"black_witch_botnet/relations"
 )
 
 const (
