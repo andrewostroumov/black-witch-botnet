@@ -1,46 +1,108 @@
 package server
 
 import (
+	"errors"
 	"soulless_network/relations"
 	"strings"
 )
+
+const (
+	domainShell = "shell"
+	domainEvent = "event"
+)
+
+const (
+	shellTypeExec = "exec"
+	shellTypeChangeDir = "cd"
+)
+
+const (
+	eventTypeHello = "hello"
+	eventTypeRestart = "restart"
+)
+
+var domains = []string{ domainShell, domainEvent }
+var shellTypes = []string{ shellTypeExec, shellTypeChangeDir }
+var eventTypes = []string{ eventTypeHello, eventTypeRestart }
 
 type Parser struct {
 	Text string
 }
 
-func (p *Parser) Parse() *relations.Command {
-	msg := &relations.Command{}
-	seg := strings.Split(p.Text, " ")
+func (p *Parser) Parse() (interface{}, error) {
+	seq := strings.Split(p.Text, " ")
 
 	i := 0
 
-	if len(seg) == 0 {
-		return msg
+	if len(seq) == 0 {
+		return nil, errors.New("unable to parse command")
 	}
 
-	res, ok := p.Normalize(seg, relations.Types, &i, "shell")
+	domain, ok := p.Normalize(seq, domains, &i)
 
-	if ok {
-		msg.Target = res
-	} else {
-		return msg
+	if !ok {
+		return nil, errors.New("unable to find domain")
 	}
 
-	res, ok = p.Normalize(seg, relations.Scopes, &i, "exec")
-
-	if ok {
-		msg.Scope = res
-	} else {
-		return msg
+	switch domain {
+	case "shell":
+		return p.parseShell(seq[i:])
+	case "event":
+		return p.parseEvent(seq[i:])
+	default:
+		return nil, errors.New("unknown domain")
 	}
-
-	msg.Data = strings.Join(seg[i:], " ")
-
-	return msg
 }
 
-func (p *Parser) Normalize(seg []string, enum []string, i *int, def string) (string, bool) {
+func (p *Parser) parseShell(seq []string) (*relations.ShellCommand, error) {
+	i := 0
+	t, ok := p.Normalize(seq, shellTypes, &i)
+
+	if !ok {
+		return nil, errors.New("unable to find shell type")
+	}
+
+	shell := &relations.ShellCommand{}
+
+	switch t {
+	case shellTypeExec:
+		shell.Type = relations.ShellTypeExec
+	case shellTypeChangeDir:
+		shell.Type = relations.ShellTypeChangeDir
+	default:
+		return nil, errors.New("unknown shell type")
+	}
+
+	shell.Data = []byte(strings.Join(seq[i:], " "))
+
+	return shell, nil
+}
+
+func (p *Parser) parseEvent(seq []string) (*relations.EventMessage, error) {
+	i := 0
+	t, ok := p.Normalize(seq, eventTypes, &i)
+
+	if !ok {
+		return nil, errors.New("unable to find event type")
+	}
+
+	event := &relations.EventMessage{}
+
+	switch t {
+	case eventTypeHello:
+		event.Type = relations.EventTypeHello
+	case eventTypeRestart:
+		event.Type = relations.EventTypeRestart
+	default:
+		return nil, errors.New("unknown event type")
+	}
+
+	event.Data = []byte(strings.Join(seq[i:], " "))
+
+	return event, nil
+}
+
+func (p *Parser) Normalize(seg []string, enum []string, i *int) (string, bool) {
 	var res string
 
 	if len(seg) < *i+1 {
@@ -56,7 +118,7 @@ func (p *Parser) Normalize(seg []string, enum []string, i *int, def string) (str
 	}
 
 	if len(res) == 0 {
-		res = def
+		res = enum[0]
 	}
 
 	return res, true

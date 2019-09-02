@@ -1,36 +1,44 @@
 package relations
 
-var Types = []string{"payload", "shell"}
-var Scopes = []string{"exec", "cd"}
-
 const (
-	TypeErrorResult = iota
-	TypeSystemResult
-	TypeShellResult
+	EventTypeHello = iota
+	EventTypeRestart
 )
 
-type Command struct {
-	Target string
-	Scope  string
-	Data   string
-}
+const (
+	ShellTypeExec = iota
+	ShellTypeChangeDir
+)
 
-type Response struct {
+const (
+	ErrorTimeout = iota
+	ErrorUnknownRequest
+	ErrorUnknownShellType
+	ErrorCommand
+)
+
+type ShellCommand struct {
 	Type uint8
-	Data interface{}
+	Data []byte
 }
 
-type ErrorResult struct {
-	Code uint
-	Data string
-}
-
-type SystemResult struct {
-	Status bool
+type EventMessage struct {
+	Type uint8
+	Data []byte
 }
 
 type ShellResult struct {
 	Exit   int
 	Stderr []byte
 	Stdout []byte
+}
+
+type EventResult struct {
+	Status bool
+	Data   []byte
+}
+
+type ErrorResult struct {
+	Code uint8
+	Data []byte
 }

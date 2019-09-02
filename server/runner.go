@@ -1,5 +1,15 @@
 package server
 
+// TODO: v1.0.0
+// implement change dir
+// implement event messages
+// implement hello message
+
+// TODO: next
+// hello message from server (as part as internal monitor maybe?)
+// save logs to file
+// add daemon file
+
 import (
 	"errors"
 	"strconv"

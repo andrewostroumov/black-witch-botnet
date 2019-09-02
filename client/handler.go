@@ -7,33 +7,49 @@ import (
 )
 
 type Handler struct {
-	Command *relations.Command
+	Message interface{}
 }
 
-func (h *Handler) handle() *relations.Response {
-	var resp *relations.Response
-	res, err := h.exec()
+func (h *Handler) handle() interface{} {
+	// messages EventMessage, ShellCommand
+	// res ErrorResult, EventResult, ShellResult
 
-	if err != nil {
-		resp = &relations.Response{
-			Type: relations.TypeErrorResult,
-			Data: &relations.ErrorResult{
-				Code: 1,
-				Data: err.Error(),
-			},
-		}
-	} else {
-		resp = &relations.Response{
-			Type: relations.TypeShellResult,
-			Data: res,
-		}
+	if req, ok := h.Message.(*relations.ShellCommand); ok {
+		return h.handleShell(req)
 	}
 
-	return resp
+	//if req, ok := h.Message.(*relations.EventMessage); ok {
+	//	return h.handleEvent(req)
+	//}
+
+	res := &relations.ErrorResult{
+		Code: relations.ErrorUnknownRequest,
+		Data: []byte("unknown request"),
+	}
+
+	return res
 }
 
-func (h *Handler) exec() (*relations.ShellResult, error) {
-	data := strings.Split(h.Command.Data, " ")
+func (h *Handler) handleShell(req *relations.ShellCommand) interface{} {
+	switch req.Type {
+	case relations.ShellTypeExec:
+		return h.execShell(req)
+	//case relations.ShellTypeChangeDir:
+	//	return h.changeDirShell(req)
+	default:
+		return &relations.ErrorResult{
+			Code: relations.ErrorUnknownShellType,
+			Data: []byte("unknown request"),
+		}
+	}
+}
+
+//func (h *Handler) handleEvent(req *relations.EventMessage) interface{} {
+//
+//}
+
+func (h *Handler) execShell(req *relations.ShellCommand) interface{} {
+	data := strings.Split(string(req.Data), " ")
 	cmd := data[0]
 	args := append(data[:0], data[0+1:]...)
 
@@ -47,10 +63,15 @@ func (h *Handler) exec() (*relations.ShellResult, error) {
 				Stderr: ee.Stderr,
 			}
 
-			return res, nil
+			return res
 		}
 
-		return nil, err
+		req := &relations.ErrorResult{
+			Code: relations.ErrorCommand,
+			Data: []byte(err.Error()),
+		}
+
+		return req
 	}
 
 	res := &relations.ShellResult{
@@ -58,5 +79,9 @@ func (h *Handler) exec() (*relations.ShellResult, error) {
 		Stdout: o,
 	}
 
-	return res, nil
+	return res
 }
+
+//func (h *Handler) changeDirShell(req *relations.ShellCommand) interface{} {
+//
+//}
