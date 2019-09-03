@@ -13,9 +13,10 @@ const (
 const (
 	ErrorTimeout = iota
 	ErrorCommand
+	ErrorChangeDir
 	ErrorUnknownRequest
 	ErrorUnknownShellType
-	ErrorChangeDir
+	ErrorUnknownEventType
 )
 
 type ShellCommand struct {

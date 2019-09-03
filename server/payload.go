@@ -1,13 +1,13 @@
 package server
 
-import  (
+import (
+	"black_witch_botnet/proto"
+	"black_witch_botnet/relations"
 	"bufio"
 	"fmt"
 	"github.com/gookit/color"
 	"log"
 	"net"
-	"black_witch_botnet/proto"
-	"black_witch_botnet/relations"
 	"strings"
 	"time"
 )

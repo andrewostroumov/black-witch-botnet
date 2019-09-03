@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"black_witch_botnet/client"
+	"flag"
 	"time"
 )
 

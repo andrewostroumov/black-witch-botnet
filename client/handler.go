@@ -19,9 +19,9 @@ func (h *Handler) handle() interface{} {
 		return h.handleShell(req)
 	}
 
-	//if req, ok := h.Message.(*relations.EventMessage); ok {
-	//	return h.handleEvent(req)
-	//}
+	if req, ok := h.Message.(*relations.EventMessage); ok {
+		return h.handleEvent(req)
+	}
 
 	res := &relations.ErrorResult{
 		Code: relations.ErrorUnknownRequest,
@@ -45,9 +45,22 @@ func (h *Handler) handleShell(req *relations.ShellCommand) interface{} {
 	}
 }
 
-//func (h *Handler) handleEvent(req *relations.EventMessage) interface{} {
-//
-//}
+func (h *Handler) handleEvent(req *relations.EventMessage) interface{} {
+	switch req.Type {
+	case relations.EventTypeHello:
+		res := &relations.EventResult{
+			Status: true,
+		}
+		return res
+	//case relations.EventTypeRestart:
+	//	return res
+	default:
+		return &relations.ErrorResult{
+			Code: relations.ErrorUnknownEventType,
+			Data: []byte("unknown request"),
+		}
+	}
+}
 
 func (h *Handler) execShell(req *relations.ShellCommand) interface{} {
 	data := strings.Split(string(req.Data), " ")
@@ -96,9 +109,11 @@ func (h *Handler) changeDirShell(req *relations.ShellCommand) interface{} {
 		return req
 	}
 
+	wd, _ := os.Getwd()
+
 	res := &relations.ShellResult{
 		Exit:   0,
-		Stdout: []byte("success"),
+		Stdout: []byte(wd),
 	}
 
 	return res

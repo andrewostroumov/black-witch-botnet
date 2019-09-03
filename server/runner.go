@@ -1,14 +1,12 @@
 package server
 
-// TODO: v1.0.0
-// implement change dir
-// implement event messages
-// implement hello message
-
 // TODO: next
+// When client connect it should send info about itself
+// Create a new response type - change dir and attach it to unix sock prefix
 // hello message from server (as part as internal monitor maybe?)
 // save logs to file
 // add daemon file
+// implement internal loop to check connections
 
 import (
 	"errors"

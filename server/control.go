@@ -42,7 +42,7 @@ func (c *ControlServer) accept(l net.Listener, r *Runner) {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			fmt.Printf("[UNIX] Accept control socket: %v\n", err)
+			log.Printf("[UNIX] Accept control socket: %v\n", err)
 			continue
 		}
 

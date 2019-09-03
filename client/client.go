@@ -1,11 +1,11 @@
 package client
 
 import (
+	"black_witch_botnet/proto"
+	"black_witch_botnet/relations"
 	"crypto/tls"
 	"log"
 	"net"
-	"black_witch_botnet/proto"
-	"black_witch_botnet/relations"
 	"time"
 )
 

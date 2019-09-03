@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"black_witch_botnet/server"
+	"flag"
 )
 
 func main() {

