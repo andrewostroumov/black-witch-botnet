@@ -4,7 +4,7 @@
 
 Run the server
 ```
-cd cmd/server && rm -rf ../../tmp/unix.sock && go build && ./server
+cd cmd/server && go build && ./server
 ```
 Run the client
 ```
