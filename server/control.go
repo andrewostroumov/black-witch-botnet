@@ -3,9 +3,9 @@ package server
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"github.com/gookit/color"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -15,14 +15,25 @@ import (
 
 type ControlServer struct {
 	Sock string
+	Connections []net.Conn
 }
 
-func (c *ControlServer) Run(r *Runner, wg sync.WaitGroup) {
+func (c *ControlServer) Run(r *Runner, wg *sync.WaitGroup, ctx context.Context) {
 	l := c.listen()
-	c.accept(l, r)
+
+	go func () {
+		<-ctx.Done()
+
+		for _, conn := range c.Connections {
+			conn.Close()
+		}
+
+		l.Close()
+		os.Remove(c.Sock)
+	}()
+
+	c.accept(l, r, ctx)
 	wg.Done()
-	defer l.Close()
-	//defer os.Remove(c.Addr)
 }
 
 func (c *ControlServer) listen() net.Listener {
@@ -38,23 +49,21 @@ func (c *ControlServer) listen() net.Listener {
 	return l
 }
 
-func (c *ControlServer) accept(l net.Listener, r *Runner) {
+func (c *ControlServer) accept(l net.Listener, r *Runner, ctx context.Context) {
 	for {
 		conn, err := l.Accept()
+
 		if err != nil {
-			log.Printf("[UNIX] Accept control socket: %v\n", err)
-			continue
+			break
 		}
 
-		log.Println("Accepted control socket", c.Sock)
-
-		go c.handle(conn, r)
+		go c.handle(conn, r, ctx)
 	}
 }
 
-func (c *ControlServer) handle(conn net.Conn, r *Runner) {
+func (c *ControlServer) handle(conn net.Conn, r *Runner, ctx context.Context) {
 	reader := bufio.NewReader(conn)
-	defer conn.Close()
+	c.Connections = append(c.Connections, conn)
 
 	for {
 		text := color.Green.Text("<CC:#> ")
@@ -62,13 +71,8 @@ func (c *ControlServer) handle(conn net.Conn, r *Runner) {
 
 		text, err := reader.ReadString('\n')
 
-		if err == io.EOF {
-			break
-		}
-
 		if err != nil {
-			log.Println("[UNIX] Reading unix input", err)
-			continue
+			break
 		}
 
 		text = strings.TrimSpace(text)

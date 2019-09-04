@@ -9,6 +9,7 @@ package server
 // implement internal loop to check connections
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"sync"
@@ -20,12 +21,12 @@ type Runner struct {
 	Payloads []*Payload
 }
 
-func (r *Runner) Run() {
+func (r *Runner) Run(ctx context.Context) {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	go r.Accept.Run(r, wg)
-	go r.Control.Run(r, wg)
+	go r.Accept.Run(r, &wg, ctx)
+	go r.Control.Run(r, &wg, ctx)
 
 	wg.Wait()
 }

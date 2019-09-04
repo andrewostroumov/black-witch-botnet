@@ -26,7 +26,6 @@ func (p *Payload) Activate(conn net.Conn) {
 		text, err := receive(conn)
 
 		if err != nil {
-			log.Println("[UNIX] Receive unix input", err)
 			break
 		}
 

