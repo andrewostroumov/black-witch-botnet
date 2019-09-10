@@ -97,28 +97,28 @@ func (p *Payload) handle(i interface{}) (interface{}, error) {
 	oPack, err := proto.Marshal(i)
 
 	if err != nil {
-		log.Printf("Error marshal package %s\n", err)
+		log.Printf("[PL] Error marshal package %s\n", err)
 		return nil, err
 	}
 
 	err = p.write(oPack)
 
 	if err != nil {
-		log.Printf("Error write package %s\n", err)
+		log.Printf("[PL] Error write package %s\n", err)
 		return nil, err
 	}
 
 	iPack, err := p.read()
 
 	if err != nil {
-		log.Printf("Error read package %s\n", err)
+		log.Printf("[PL] Error read package %s\n", err)
 		return nil, err
 	}
 
 	res, err := proto.Unmarshal(iPack)
 
 	if err != nil {
-		log.Printf("Error unmarshal package %s\n", err)
+		log.Printf("[PL] Error unmarshal package %s\n", err)
 		return nil, err
 	}
 
