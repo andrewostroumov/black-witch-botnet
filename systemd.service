@@ -1,0 +1,20 @@
+[Unit]
+Description=black witch service
+
+[Service]
+LimitNOFILE=20000
+WorkingDirectory=/opt/black
+PIDFile=/run/black-witch.pid
+ExecStart=/opt/black/server -addr-accept :7328 -sock-control unix.sock -cert server.crt -key server.key
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s INT $MAINPID
+KillMode=process
+Restart=always
+User=root
+Group=root
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=black-witch
+
+[Install]
+WantedBy=multi-user.target
